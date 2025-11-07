@@ -2,8 +2,7 @@ const clothingitems = require("../models/clothingitems");
 const ClothingItem = require("../models/clothingitems");
 
 const getClothingItems = (req, res) => {
-  clothingItem
-    .find({})
+  ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
@@ -12,16 +11,10 @@ const getClothingItems = (req, res) => {
 };
 
 const createItem = (req, res) => {
-  console.log(req);
-  console.log(req.body);
-
   const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({ name, weather, imageUrl })
-    .then((item) => {
-      console.log(item);
-      res.send({ data: item });
-    })
+    .then((item) => res.send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -56,22 +49,21 @@ const updateItem = (req, res) => {
       if (e.message === "Item not found") {
         return res.status(404).send({ message: "Item not found" });
       }
-      res.status(500).send({ message: e.message });
+      return res.status(500).send({ message: e.message });
     });
 };
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  console.log(itemId);
   clothingitems
     .findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send({}))
+    .then(() => res.status(204).send({}))
     .catch((e) => {
       if (e.message === "Item not found") {
         return res.status(404).send({ message: "Item not found" });
       }
-      res.status(500).send({ message: e.message });
+      return res.status(500).send({ message: e.message });
     });
 };
 
