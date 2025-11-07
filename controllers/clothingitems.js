@@ -3,7 +3,7 @@ const ClothingItem = require("../models/clothingitems");
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send(items))
+    .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
       return res.status(500).send({ message: err.message });
@@ -13,8 +13,26 @@ const getClothingItems = (req, res) => {
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({ name, weather, imageUrl })
-    .then((item) => res.send({ data: item }))
+  if (!name) {
+    return res.status(400).send({
+      message: "Name is required",
+    });
+  }
+
+  if (!weather) {
+    return res.status(400).send({
+      message: "Weather is required",
+    });
+  }
+
+  if (!imageUrl) {
+    return res.status(400).send({
+      message: "ImageUrl is required",
+    });
+  }
+
+  return ClothingItem.create({ name, weather, imageUrl })
+    .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
