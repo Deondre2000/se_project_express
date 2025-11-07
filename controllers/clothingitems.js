@@ -3,7 +3,7 @@ const ClothingItem = require("../models/clothingitems");
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send({ _id: items }))
+    .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
       return res.status(500).send({ message: err.message });
@@ -32,7 +32,7 @@ const createItem = (req, res) => {
   }
 
   return ClothingItem.create({ name, weather, imageUrl })
-    .then((item) => res.status(201).send({ _id: item }))
+    .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -62,7 +62,7 @@ const updateItem = (req, res) => {
       { new: true, runValidators: true }
     )
     .orFail(() => new Error("Item not found"))
-    .then((item) => res.status(200).send({ _id: item }))
+    .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
       if (e.message === "Item not found") {
         return res.status(404).send({ message: "Item not found" });
