@@ -2,7 +2,7 @@ const User = require("../models/user");
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(200).json(users))
+    .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
       return res.status(500).send({ message: err.message });
@@ -11,17 +11,31 @@ const getUsers = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
-  User.create({ name, avatar })
-    .then((user) => res.status(200).json(user))
+
+  if (!name || !avatar) {
+    return res.status(400).send({ message: "Name and avatar are required" });
+  }
+
+  return User.create({ name, avatar })
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
+      if (err.code === 11000) {
+        return User.findOne({ name })
+          .then((existing) => {
+            if (existing) {
+              return res.status(200).send(existing);
+            }
+            return res
+              .status(409)
+              .send({ message: "User with this name already exists" });
+          })
+          .catch((findErr) =>
+            res.status(500).send({ message: findErr.message })
+          );
+      }
       if (err.name === "ValidationError") {
         return res.status(400).send({ message: err.message });
-      }
-      if (err.code === 11000) {
-        return res
-          .status(409)
-          .send({ message: "User with this name already exists" });
       }
       return res
         .status(500)
@@ -33,9 +47,10 @@ const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail()
-    .then((user) => res.status(200).json(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       console.error(err);
+      console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
         return res.status(404).send({ message: "User not found" });
       }

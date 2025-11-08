@@ -5,6 +5,8 @@ const clothingItem = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    minlength: 3,
+    maxlength: 30,
   },
   weather: {
     type: String,
@@ -17,6 +19,11 @@ const clothingItem = new mongoose.Schema({
       validator: (v) => Validator.isURL(v),
       message: "Link is not a valid URL",
     },
+  },
+  likes: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "user",
+    default: [],
   },
 });
 
