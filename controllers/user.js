@@ -21,10 +21,14 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.code === 11000) {
-        return User.findOne({ name })
-          .then((existing) => {
-            if (existing) {
-              return res.status(200).send(existing);
+        return User.findOneAndUpdate(
+          { name },
+          { $set: { avatar } },
+          { new: true, runValidators: true }
+        )
+          .then((updated) => {
+            if (updated) {
+              return res.status(200).send(updated);
             }
             return res
               .status(409)
