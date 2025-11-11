@@ -1,11 +1,18 @@
 const User = require("../models/user");
+const {
+  NOT_FOUND,
+  BAD_REQUEST,
+  INTERNAL_SERVER_ERROR,
+} = require("../utils/errors");
 
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      return res.status(500).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -13,7 +20,9 @@ const createUser = (req, res) => {
   const { name, avatar } = req.body;
 
   if (!name || !avatar) {
-    return res.status(400).send({ message: "Name and avatar are required" });
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Name and avatar are required" });
   }
 
   return User.create({ name, avatar })
@@ -35,14 +44,14 @@ const createUser = (req, res) => {
               .send({ message: "User with this name already exists" });
           })
           .catch((findErr) =>
-            res.status(500).send({ message: findErr.message })
+            res.status(INTERNAL_SERVER_ERROR).send({ message: findErr.message })
           );
       }
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
+        return res.status(BAD_REQUEST).send({ message: err.message });
       }
       return res
-        .status(500)
+        .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error occurred on the server" });
     });
 };
@@ -56,12 +65,12 @@ const getUser = (req, res) => {
       console.error(err);
       console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(NOT_FOUND).send({ message: "User not found" });
       }
       if (err.name === "CastError") {
-        return res.status(400).send({ message: "Invalid user ID" });
+        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
-      return res.status(500).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 

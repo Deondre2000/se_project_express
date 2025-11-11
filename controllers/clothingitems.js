@@ -1,87 +1,66 @@
 const Validator = require("validator");
-const clothingitems = require("../models/clothingitems");
-const ClothingItem = require("../models/clothingitems");
+const clothingItems = require("../models/clothingitems");
+const clothingItem = require("../models/clothingitems");
+const {
+  NOT_FOUND,
+  BAD_REQUEST,
+  INTERNAL_SERVER_ERROR,
+} = require("../utils/errors");
 
-const getClothingItems = (req, res) => {
-  ClothingItem.find({})
+const getclothingItems = (req, res) => {
+  clothingItem
+    .find({})
     .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
-      return res.status(500).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 
 const createItem = (req, res) => {
-  const Name = typeof req.body.name === "string" ? req.body.name : "";
-  const name = Name.trim();
+  const name = typeof req.body.name === "string" ? req.body.name : "";
+  const names = name.trim();
   const { weather, imageUrl } = req.body;
 
-  if (!name) {
-    return res.status(400).send({ message: "Name is required" });
+  if (!names) {
+    return res.status(BAD_REQUEST).send({ message: "Name is required" });
   }
-  if (name.length < 3 || name.length > 30) {
+  if (names.length < 2 || names.length > 30) {
     return res
-      .status(400)
-      .send({ message: "Name must be between 3 and 30 characters" });
+      .status(BAD_REQUEST)
+      .send({ message: "Name must be between 2 and 30 characters" });
   }
 
   if (!weather) {
-    return res.status(400).send({ message: "Weather is required" });
+    return res.status(BAD_REQUEST).send({ message: "Weather is required" });
   }
 
   if (!imageUrl) {
-    return res.status(400).send({ message: "ImageUrl is required" });
+    return res.status(BAD_REQUEST).send({ message: "ImageUrl is required" });
   }
   if (!Validator.isURL(String(imageUrl))) {
-    return res.status(400).send({ message: "ImageUrl must be a valid URL" });
+    return res.status(BAD_REQUEST).send({ message: "ImageUrl must be a valid URL" });
   }
 
-  return ClothingItem.create({ name, weather, imageUrl })
+  return clothingItem
+    .create({ name: names, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
+        return res.status(BAD_REQUEST).send({ message: err.message });
       }
-      return res.status(500).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 
 const getItems = (req, res) => {
-  clothingitems
+  clothingItems
     .find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      return res.status(500).send({ message: err.message });
-    });
-};
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageUrl } = req.body;
-
-  if (imageUrl && !Validator.isURL(String(imageUrl))) {
-    return res.status(400).send({ message: "ImageUrl must be a valid URL" });
-  }
-
-  return clothingitems
-    .findOneAndUpdate(
-      { _id: itemId },
-      { $set: { imageUrl } },
-      {
-        new: true,
-        runValidators: true,
-        upsert: true,
-        setDefaultsOnInsert: true,
-      }
-    )
-    .then((item) => res.status(200).send({ data: item }))
-    .catch((e) => {
-      if (e.name === "CastError") {
-        return res.status(400).send({ message: "Invalid item ID" });
-      }
-      return res.status(500).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 
@@ -89,18 +68,18 @@ const likeItem = (req, res) => {
   const { itemId } = req.params;
   const userId = req.user && req.user._id;
 
-  return clothingitems
+  return clothingItems
     .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
     .orFail(() => new Error("Item not found"))
     .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
       if (e.message === "Item not found") {
-        return res.status(404).send({ message: "Item not found" });
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
       if (e.name === "CastError") {
-        return res.status(400).send({ message: "Invalid item ID" });
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(500).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
     });
 };
 
@@ -108,43 +87,42 @@ const unlikeItem = (req, res) => {
   const { itemId } = req.params;
   const userId = req.user && req.user._id;
 
-  return clothingitems
+  return clothingItems
     .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
     .orFail(() => new Error("Item not found"))
     .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
       if (e.message === "Item not found") {
-        return res.status(404).send({ message: "Item not found" });
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
       if (e.name === "CastError") {
-        return res.status(400).send({ message: "Invalid item ID" });
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(500).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
     });
 };
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  clothingitems
+  clothingItems
     .findByIdAndDelete(itemId)
     .orFail(() => new Error("Item not found"))
     .then(() => res.status(200).send({}))
     .catch((e) => {
       if (e.message === "Item not found") {
-        return res.status(404).send({ message: "Item not found" });
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
       if (e.name === "CastError") {
-        return res.status(400).send({ message: "Invalid item ID" });
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(500).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
     });
 };
 
 module.exports = {
-  getClothingItems,
+  getclothingItems,
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   unlikeItem,
