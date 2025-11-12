@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const clothingItems = require("./clothingitems");
 const userRouter = require("./users");
+const { NOT_FOUND } = require("../utils/errors");
 
 // Lightweight request logger to help diagnose 404s during PUT requests
 router.use((req, res, next) => {
@@ -11,11 +12,10 @@ router.use((req, res, next) => {
 
 router.use("/users", userRouter);
 router.use("/items", clothingItems);
-router.use("/clothingitems", clothingItems);
 
 router.use((req, res) => {
   console.warn("No route matched:", req.method, req.originalUrl);
-  res.status(404).send({ message: "Router not found" });
+  res.status(NOT_FOUND).send({ message: "Router not found" });
 });
 
 module.exports = router;

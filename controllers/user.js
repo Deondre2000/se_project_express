@@ -19,34 +19,10 @@ const getUsers = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
 
-  if (!name || !avatar) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Name and avatar are required" });
-  }
-
   return User.create({ name, avatar })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
-      if (err.code === 11000) {
-        return User.findOneAndUpdate(
-          { name },
-          { $set: { avatar } },
-          { new: true, runValidators: true }
-        )
-          .then((updated) => {
-            if (updated) {
-              return res.status(200).send(updated);
-            }
-            return res
-              .status(409)
-              .send({ message: "User with this name already exists" });
-          })
-          .catch((findErr) =>
-            res.status(INTERNAL_SERVER_ERROR).send({ message: findErr.message })
-          );
-      }
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
       }

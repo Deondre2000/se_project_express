@@ -13,23 +13,12 @@ const getclothingItems = (req, res) => {
     .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error has occurred on the server" });
     });
 };
 
 const createItem = (req, res) => {
-  const name = typeof req.body.name === "string" ? req.body.name : "";
-  const names = name.trim();
-  const { weather, imageUrl } = req.body;
-
-  if (!names) {
-    return res.status(BAD_REQUEST).send({ message: "Name is required" });
-  }
-  if (names.length < 2 || names.length > 30) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Name must be between 2 and 30 characters" });
-  }
+  const { name, weather, imageUrl } = req.body;
 
   if (!weather) {
     return res.status(BAD_REQUEST).send({ message: "Weather is required" });
@@ -43,7 +32,7 @@ const createItem = (req, res) => {
   }
 
   return clothingItem
-    .create({ name: names, weather, imageUrl, owner: req.user._id })
+    .create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
