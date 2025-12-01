@@ -8,7 +8,6 @@ const {
   updateUser,
 } = require("../controllers/user");
 const auth = require("../middlewares/auth");
-const { deleteItem } = require("../controllers/clothingitems");
 
 
 router.post("/signin", userLogin);
@@ -19,7 +18,5 @@ router.patch("/users/me", auth, updateUser);
 
 router.use("/users", userRouter);
 router.use("/items", clothingItems);
-
-router.delete("/items/:itemId", auth, deleteItem);
 
 module.exports = router;
