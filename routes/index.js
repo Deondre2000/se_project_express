@@ -1,21 +1,25 @@
 const router = require("express").Router();
 const clothingItems = require("./clothingitems");
 const userRouter = require("./users");
-const { NOT_FOUND } = require("../utils/errors");
+const {
+  userLogin,
+  createUser,
+  getCurrentUser,
+  updateUser,
+} = require("../controllers/user");
+const auth = require("../middlewares/auth");
+const { deleteItem } = require("../controllers/clothingitems");
 
-// Lightweight request logger to help diagnose 404s during PUT requests
-router.use((req, res, next) => {
-  // Example: "PUT /items/123"
-  console.log(`${req.method} ${req.originalUrl}`);
-  next();
-});
+
+router.post("/signin", userLogin);
+router.post("/signup", createUser);
+
+router.get("/users/me", auth, getCurrentUser);
+router.patch("/users/me", auth, updateUser);
 
 router.use("/users", userRouter);
 router.use("/items", clothingItems);
 
-router.use((req, res) => {
-  console.warn("No route matched:", req.method, req.originalUrl);
-  res.status(NOT_FOUND).send({ message: "Router not found" });
-});
+router.delete("/items/:itemId", auth, deleteItem);
 
 module.exports = router;

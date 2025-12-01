@@ -5,6 +5,7 @@ const {
   NOT_FOUND,
   BAD_REQUEST,
   INTERNAL_SERVER_ERROR,
+  FORBIDDEN,
 } = require("../utils/errors");
 
 const getclothingItems = (req, res) => {
@@ -13,7 +14,9 @@ const getclothingItems = (req, res) => {
     .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error has occurred on the server" });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -28,7 +31,9 @@ const createItem = (req, res) => {
     return res.status(BAD_REQUEST).send({ message: "ImageUrl is required" });
   }
   if (!Validator.isURL(String(imageUrl))) {
-    return res.status(BAD_REQUEST).send({ message: "ImageUrl must be a valid URL" });
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "ImageUrl must be a valid URL" });
   }
 
   return clothingItem
@@ -94,9 +99,16 @@ const unlikeItem = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
   clothingItems
-    .findByIdAndDelete(itemId)
+    .findById(itemId)
     .orFail(() => new Error("Item not found"))
-    .then(() => res.status(200).send({}))
+    .then((item) => {
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return res
+          .status(FORBIDDEN)
+          .send({ message: "You do not have permission to delete this item" });
+      }
+      return clothingItems.findByIdAndDelete(itemId).then(() => res.status(200).send({}));
+    })
     .catch((e) => {
       if (e.message === "Item not found") {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
