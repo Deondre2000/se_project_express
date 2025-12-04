@@ -8,7 +8,6 @@ const {
   INTERNAL_SERVER_ERROR,
   CONFLICT_ERROR,
 } = require("../utils/errors");
-const user = require("../models/user");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -92,7 +91,6 @@ const createUser = (req, res) => {
         .send({ message: "An error occurred on the server" });
     });
 };
-
 
 const getUser = (req, res) => {
   const { userId } = req.params;
