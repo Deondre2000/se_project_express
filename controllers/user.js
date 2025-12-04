@@ -8,6 +8,7 @@ const {
   INTERNAL_SERVER_ERROR,
   CONFLICT_ERROR,
 } = require("../utils/errors");
+const user = require("../models/user");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -27,6 +28,19 @@ const createUser = (req, res) => {
     return res.status(BAD_REQUEST).send({
       message: "All fields (name, avatar, email, password) are required",
     });
+  }
+
+  try {
+    const parsed = new URL(avatar);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return res
+        .status(BAD_REQUEST)
+        .send({ message: "You must enter a valid URL" });
+    }
+  } catch (e) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "You must enter a valid URL" });
   }
 
   return User.findOne({ email })
@@ -78,6 +92,7 @@ const createUser = (req, res) => {
         .send({ message: "An error occurred on the server" });
     });
 };
+
 
 const getUser = (req, res) => {
   const { userId } = req.params;

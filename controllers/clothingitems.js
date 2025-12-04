@@ -38,7 +38,7 @@ const createItem = (req, res) => {
 
   return clothingItem
     .create({ name, weather, imageUrl, owner: req.user._id })
-    .then((item) => res.status(201).send({ data: item }))
+    .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -102,12 +102,19 @@ const deleteItem = (req, res) => {
     .findById(itemId)
     .orFail(() => new Error("Item not found"))
     .then((item) => {
-      if (item.owner.toString() !== req.user._id.toString()) {
-        return res
+      const itemOwner = item.owner.toString();
+      const requester = String(req.user._id);
+      if (itemOwner !== requester) {
+        res
           .status(FORBIDDEN)
           .send({ message: "You do not have permission to delete this item" });
       }
-      return clothingItems.findByIdAndDelete(itemId).then(() => res.status(200).send({}));
+      return clothingItems.findByIdAndDelete(itemId);
+    })
+    .then((result) => {
+      if (result !== null) {
+        res.status(200).send({});
+      }
     })
     .catch((e) => {
       if (e.message === "Item not found") {

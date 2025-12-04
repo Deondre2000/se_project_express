@@ -21,8 +21,8 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, "The email field is required"],
     unique: true,
+    sparse: true,
     validate: {
       validator(value) {
         return validator.isEmail(value);
@@ -32,7 +32,6 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, "The password field is required"],
     select: false,
   },
 });
