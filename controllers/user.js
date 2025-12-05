@@ -153,7 +153,9 @@ const getCurrentUser = (req, res) => {
 };
 
 const createUserRelaxed = (req, res) => {
-  let { name, avatar, email, password } = req.body;
+  const { name, avatar, email: emailInput, password: passwordInput } = req.body;
+  let email = emailInput;
+  let password = passwordInput;
 
   if (!name) {
     console.log("[createUserRelaxed] Missing name, returning 400");

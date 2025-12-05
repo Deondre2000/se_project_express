@@ -16,7 +16,7 @@ mongoose
   })
   .catch(console.error);
 
-  app.use(cors());
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,6 +30,7 @@ app.use((req, res, next) => {
       const payload = jwt.verify(token, JWT_SECRET);
       req.user = payload;
     } catch (err) {
+      console.warn("Invalid bearer token provided, continuing as guest");
     }
   }
 
