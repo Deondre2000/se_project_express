@@ -103,18 +103,15 @@ const deleteItem = (req, res) => {
     .orFail(() => new Error("Item not found"))
     .then((item) => {
       const itemOwner = item.owner.toString();
-      const requester = String(req.user._id);
+      const requester = String(req.user && req.user._id);
       if (itemOwner !== requester) {
-        res
+        return res
           .status(FORBIDDEN)
           .send({ message: "You do not have permission to delete this item" });
       }
-      return clothingItems.findByIdAndDelete(itemId);
-    })
-    .then((result) => {
-      if (result !== null) {
-        res.status(200).send({});
-      }
+      return clothingItems
+        .findByIdAndDelete(itemId)
+        .then(() => res.status(200).send({}));
     })
     .catch((e) => {
       if (e.message === "Item not found") {

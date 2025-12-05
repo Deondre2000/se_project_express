@@ -4,6 +4,7 @@ const userRouter = require("./users");
 const {
   userLogin,
   createUser,
+  createUserRelaxed,
   getCurrentUser,
   updateUser,
   getUsers,
@@ -13,7 +14,7 @@ const auth = require("../middlewares/auth");
 
 router.post("/signin", userLogin);
 router.post("/signup", createUser);
-router.post("/users", createUser);
+router.post("/users", createUserRelaxed);
 
 router.get("/users", getUsers);
 router.get("/users/me", auth, getCurrentUser);
