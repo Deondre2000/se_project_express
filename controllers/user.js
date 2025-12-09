@@ -7,7 +7,7 @@ const {
   BAD_REQUEST,
   INTERNAL_SERVER_ERROR,
   CONFLICT_ERROR,
-  UNAUTHORIZED
+  UNAUTHORIZED,
 } = require("../utils/errors");
 
 const createUser = (req, res) => {
@@ -85,9 +85,20 @@ const createUser = (req, res) => {
 const userLogin = (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(BAD_REQUEST).send({
+      message: "Email and password are required",
+    });
+  }
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log("[userLogin] Login successful for user:", user._id, user.name, user.email);
+      console.log(
+        "[userLogin] Login successful for user:",
+        user._id,
+        user.name,
+        user.email
+      );
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -110,7 +121,14 @@ const getCurrentUser = (req, res) => {
     .orFail()
     .then((user) => {
       console.log("[getCurrentUser] Found user:", user.name);
-      res.status(200).send(user);
+      const userObject = user.toObject();
+      res.status(200).send({
+        _id: userObject._id,
+        id: userObject._id,
+        name: userObject.name,
+        avatar: userObject.avatar,
+        email: userObject.email,
+      });
     })
     .catch((err) => {
       console.error("[getCurrentUser] Error:", err.name, err.message);
@@ -150,9 +168,40 @@ const updateUser = (req, res) => {
     });
 };
 
+const getUsers = (req, res) => {
+  User.find({})
+    .then((users) => res.status(200).send(users))
+    .catch((err) => {
+      console.error(err);
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occurred on the server" });
+    });
+};
+
+const getUser = (req, res) => {
+  const { userId } = req.params;
+
+  User.findById(userId)
+    .orFail()
+    .then((user) => res.status(200).send(user))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User not found" });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
+      }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    });
+};
+
 module.exports = {
   createUser,
   userLogin,
   getCurrentUser,
   updateUser,
+  getUsers,
+  getUser,
 };
