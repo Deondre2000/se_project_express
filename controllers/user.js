@@ -7,18 +7,8 @@ const {
   BAD_REQUEST,
   INTERNAL_SERVER_ERROR,
   CONFLICT_ERROR,
+  UNAUTHORIZED
 } = require("../utils/errors");
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
-    });
-};
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -92,24 +82,6 @@ const createUser = (req, res) => {
     });
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
-      console.log(err.name);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
-    });
-};
-
 const userLogin = (req, res) => {
   const { email, password } = req.body;
 
@@ -125,7 +97,7 @@ const userLogin = (req, res) => {
     .catch((err) => {
       console.error(err);
       return res
-        .status(BAD_REQUEST)
+        .status(UNAUTHORIZED)
         .send({ message: "Incorrect email or password" });
     });
 };
@@ -149,77 +121,6 @@ const getCurrentUser = (req, res) => {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
       return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
-    });
-};
-
-const createUserRelaxed = (req, res) => {
-  const { name, avatar, email: emailInput, password: passwordInput } = req.body;
-  let email = emailInput;
-  let password = passwordInput;
-
-  if (!name) {
-    console.log("[createUserRelaxed] Missing name, returning 400");
-    return res.status(BAD_REQUEST).send({ message: "Name is required" });
-  }
-
-  if (!avatar) {
-    console.log("[createUserRelaxed] Missing avatar, returning 400");
-    return res.status(BAD_REQUEST).send({ message: "Avatar is required" });
-  }
-
-  if (!email) {
-    const ts = Date.now();
-    const rand = Math.random().toString(36).slice(2, 8);
-    email = `auto+${ts}.${rand}@example.com`;
-  }
-  if (!password) {
-    password =
-      Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  }
-
-  try {
-    const parsed = new URL(avatar);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "You must enter a valid URL" });
-    }
-  } catch (e) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "You must enter a valid URL" });
-  }
-
-  return User.findOne({ email })
-    .then((existingByEmail) => {
-      if (existingByEmail) {
-        return res
-          .status(CONFLICT_ERROR)
-          .send({ message: "Email already exists" });
-      }
-      return bcrypt
-        .hash(password, 10)
-        .then((hash) => User.create({ name, avatar, email, password: hash }))
-        .then((user) =>
-          res.status(201).send({
-            _id: user._id,
-            name: user.name,
-            avatar: user.avatar,
-            email: user.email,
-          })
-        );
-    })
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-      if (err.name === "MongoServerError" && err.code === 11000) {
-        return res.status(CONFLICT_ERROR).send({ message: "Duplicate key" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -250,10 +151,7 @@ const updateUser = (req, res) => {
 };
 
 module.exports = {
-  getUsers,
   createUser,
-  createUserRelaxed,
-  getUser,
   userLogin,
   getCurrentUser,
   updateUser,
