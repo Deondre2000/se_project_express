@@ -10,8 +10,6 @@ router.post("/users", createUser);
 
 router.use("/items", clothingItems);
 
-router.use(auth);
-
 router.use("/users", userRouter);
 
 module.exports = router;

@@ -42,9 +42,9 @@ const createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        return res.status(BAD_REQUEST).send({ message: "Invalid item data" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error occurred on the server" });
     });
 };
 
@@ -54,7 +54,7 @@ const getItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error occurred on the server" });
     });
 };
 
@@ -73,7 +73,7 @@ const likeItem = (req, res) => {
       if (e.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error occurred on the server" });
     });
 };
 
@@ -92,7 +92,7 @@ const unlikeItem = (req, res) => {
       if (e.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error occurred on the server" });
     });
 };
 
@@ -120,7 +120,7 @@ const deleteItem = (req, res) => {
       if (e.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: e.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "An error occurred on the server" });
     });
 };
 

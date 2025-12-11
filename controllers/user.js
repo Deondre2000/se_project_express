@@ -55,7 +55,7 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
       }
       if (err.name === "MongoServerError" && err.code === 11000) {
         let key = null;
@@ -107,6 +107,11 @@ const userLogin = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED)
+          .send({ message: "Incorrect email or password" });
+      }
       return res
         .status(UNAUTHORIZED)
         .send({ message: "Incorrect email or password" });
@@ -138,7 +143,9 @@ const getCurrentUser = (req, res) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -159,41 +166,14 @@ const updateUser = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "User not found" });
       }
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
       }
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
-    });
-};
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error occurred on the server" });
-    });
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 
@@ -202,6 +182,4 @@ module.exports = {
   userLogin,
   getCurrentUser,
   updateUser,
-  getUsers,
-  getUser,
 };
