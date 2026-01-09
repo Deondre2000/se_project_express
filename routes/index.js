@@ -2,7 +2,6 @@ const router = require("express").Router();
 const clothingItems = require("./clothingitems");
 const userRouter = require("./users");
 const { userLogin, createUser } = require("../controllers/user");
-const auth = require("../middlewares/auth");
 
 router.post("/signin", userLogin);
 router.post("/signup", createUser);
