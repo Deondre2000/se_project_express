@@ -23,5 +23,6 @@ module.exports = {
     // allow identifier `_id` (commonly used by MongoDB)
     "no-underscore-dangle": ["error", { allow: ["_id"] }],
     "no-console": ["error", { allow: ["log", "warn", "error"] }],
+    "no-unused-vars": ["error", { argsIgnorePattern: "next" }],
   },
 };

@@ -3,41 +3,34 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const {
-  NOT_FOUND,
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  CONFLICT_ERROR,
-  UNAUTHORIZED,
+  BadRequestError,
+  UnauthorizedError,
+  NotFoundError,
+  ConflictError,
 } = require("../utils/errors");
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!name || !avatar || !email || !password) {
-    return res.status(BAD_REQUEST).send({
-      message: "All fields (name, avatar, email, password) are required",
-    });
+    return next(
+      new BadRequestError("All fields (name, avatar, email, password) are required")
+    );
   }
 
   try {
     const parsed = new URL(avatar);
     if (!["http:", "https:"].includes(parsed.protocol)) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "You must enter a valid URL" });
+      return next(new BadRequestError("You must enter a valid URL"));
     }
   } catch (e) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "You must enter a valid URL" });
+    return next(new BadRequestError("You must enter a valid URL"));
   }
 
   return User.findOne({ email })
     .then((existingByEmail) => {
       if (existingByEmail) {
-        return res
-          .status(CONFLICT_ERROR)
-          .send({ message: "Email already exists" });
+        throw new ConflictError("Email already exists");
       }
 
       return bcrypt
@@ -53,11 +46,9 @@ const createUser = (req, res) => {
         );
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
-      }
-      if (err.name === "MongoServerError" && err.code === 11000) {
+        next(new BadRequestError("Invalid user data"));
+      } else if (err.name === "MongoServerError" && err.code === 11000) {
         let key = null;
         if (err.keyPattern) {
           [key] = Object.keys(err.keyPattern);
@@ -65,30 +56,23 @@ const createUser = (req, res) => {
           [key] = Object.keys(err.keyValue);
         }
         if (key === "email") {
-          return res
-            .status(CONFLICT_ERROR)
-            .send({ message: "Email already exists" });
+          next(new ConflictError("Email already exists"));
+        } else if (key === "name") {
+          next(new ConflictError("Name already exists"));
+        } else {
+          next(new ConflictError("Duplicate key"));
         }
-        if (key === "name") {
-          return res
-            .status(CONFLICT_ERROR)
-            .send({ message: "Name already exists" });
-        }
-        return res.status(CONFLICT_ERROR).send({ message: "Duplicate key" });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
     });
 };
 
-const userLogin = (req, res) => {
+const userLogin = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(BAD_REQUEST).send({
-      message: "Email and password are required",
-    });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   return User.findUserByCredentials(email, password)
@@ -106,19 +90,15 @@ const userLogin = (req, res) => {
       return res.status(200).send({ token });
     })
     .catch((err) => {
-      console.error(err);
       if (err.message === "Incorrect email or password") {
-        return res
-          .status(UNAUTHORIZED)
-          .send({ message: "Incorrect email or password" });
+        next(new UnauthorizedError("Incorrect email or password"));
+      } else {
+        next(new UnauthorizedError("Incorrect email or password"));
       }
-      return res
-        .status(UNAUTHORIZED)
-        .send({ message: "Incorrect email or password" });
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
   console.log("[getCurrentUser] Looking for user with ID:", _id);
 
@@ -138,18 +118,16 @@ const getCurrentUser = (req, res) => {
     .catch((err) => {
       console.error("[getCurrentUser] Error:", err.name, err.message);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        next(new NotFoundError("User not found"));
+      } else if (err.name === "CastError") {
+        next(new BadRequestError("Invalid user ID"));
+      } else {
+        next(err);
       }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const { _id } = req.user;
 
@@ -161,19 +139,15 @@ const updateUser = (req, res) => {
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        next(new NotFoundError("User not found"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid user data"));
+      } else if (err.name === "CastError") {
+        next(new BadRequestError("Invalid user ID"));
+      } else {
+        next(err);
       }
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
     });
 };
 
