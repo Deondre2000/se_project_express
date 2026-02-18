@@ -5,7 +5,7 @@ const {
   BadRequestError,
   NotFoundError,
   ForbiddenError,
-} = require("../utils/errors");
+} = require("../errors");
 
 const getclothingItems = (req, res, next) => {
   clothingItem

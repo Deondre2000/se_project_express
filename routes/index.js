@@ -1,48 +1,37 @@
 const router = require("express").Router();
-const { celebrate, Joi } = require("celebrate");
 const clothingItems = require("./clothingitems");
 const userRouter = require("./users");
 const { userLogin, createUser } = require("../controllers/user");
+const { NOT_FOUND } = require("../errors");
+const {
+  validateLoginBody,
+  validateSignUpBody,
+} = require("../middlewares/validation");
 
 router.post(
   "/signin",
-  celebrate({
-    body: Joi.object().keys({
-      email: Joi.string().required().email(),
-      password: Joi.string().required(),
-    }),
-  }),
+  validateLoginBody,
   userLogin
 );
 
 router.post(
   "/signup",
-  celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
-      avatar: Joi.string().required().uri(),
-      email: Joi.string().required().email(),
-      password: Joi.string().required().min(6),
-    }),
-  }),
+  validateSignUpBody,
   createUser
 );
 
 router.post(
   "/users",
-  celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
-      avatar: Joi.string().required().uri(),
-      email: Joi.string().required().email(),
-      password: Joi.string().required().min(6),
-    }),
-  }),
+  validateSignUpBody,
   createUser
 );
 
 router.use("/items", clothingItems);
 
 router.use("/users", userRouter);
+
+router.use((req, res) =>
+  res.status(NOT_FOUND).send({ message: "Requested resource not found" })
+);
 
 module.exports = router;

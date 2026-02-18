@@ -3,8 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const { errors } = require("celebrate");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
+require("dotenv").config();
+
 const mainRouter = require("./routes/index");
-const { NOT_FOUND } = require("./utils/errors");
 const errorHandler = require("./middlewares/error-handler");
 
 const app = express();
@@ -25,11 +26,13 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
-app.use("/", mainRouter);
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Server will crash now');
+  }, 0);
+});
 
-app.use((req, res) =>
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" })
-);
+app.use("/", mainRouter);
 
 app.use(errorLogger);
 

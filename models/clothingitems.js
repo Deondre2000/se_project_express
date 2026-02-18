@@ -21,13 +21,11 @@ const clothingItem = new mongoose.Schema({
       message: "Link is not a valid URL",
     },
   },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
-    },
-  ],
-  default: [],
+  likes: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "user",
+    default: [],
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",

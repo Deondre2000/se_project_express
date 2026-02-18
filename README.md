@@ -14,3 +14,6 @@ Before committing your code, make sure you edit the file `sprint.txt` in the roo
 
 SUMMARY:
 This project was created using express.js, a little bit of mongoose and postman to test if I put together a properly working server. The express.js help me create and run a server. then I use postman test the server and make sure i have no errors.Then the errors that did come in to make sure that they were handled properly.
+
+Domain name: www.react.pakasak.com
+Frontend link: https://github.com/Deondre2000/se_project_react.git
