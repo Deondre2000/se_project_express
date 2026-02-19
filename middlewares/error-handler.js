@@ -8,6 +8,7 @@ const errorHandler = (err, req, res, next) => {
   const message = err.message || "An error occurred on the server";
 
   res.status(statusCode).send({ message });
+  next();
 };
 
 module.exports = errorHandler;

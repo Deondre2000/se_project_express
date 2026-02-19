@@ -1,7 +1,7 @@
-const { JWT_SECRET = "dev-secret-key" } = process.env;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+const { JWT_SECRET } = require("../utils/config");
 const {
   BadRequestError,
   UnauthorizedError,

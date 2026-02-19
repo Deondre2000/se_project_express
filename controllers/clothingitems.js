@@ -7,13 +7,6 @@ const {
   ForbiddenError,
 } = require("../errors");
 
-const getclothingItems = (req, res, next) => {
-  clothingItem
-    .find({})
-    .then((items) => res.status(200).send({ data: items }))
-    .catch(next);
-};
-
 const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
@@ -30,7 +23,7 @@ const createItem = (req, res, next) => {
 
   return clothingItem
     .create({ name, weather, imageUrl, owner: req.user._id })
-    .then((item) => res.status(200).send({ data: item }))
+    .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
         next(new BadRequestError("Invalid item data"));
@@ -112,7 +105,6 @@ const deleteItem = (req, res, next) => {
 };
 
 module.exports = {
-  getclothingItems,
   createItem,
   getItems,
   deleteItem,

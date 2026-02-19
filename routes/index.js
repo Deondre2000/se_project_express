@@ -20,12 +20,6 @@ router.post(
   createUser
 );
 
-router.post(
-  "/users",
-  validateSignUpBody,
-  createUser
-);
-
 router.use("/items", clothingItems);
 
 router.use("/users", userRouter);

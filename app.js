@@ -4,16 +4,15 @@ const cors = require("cors");
 const { errors } = require("celebrate");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 require("dotenv").config();
+const { PORT, DB_ADDRESS } = require("./utils/config");
 
 const mainRouter = require("./routes/index");
 const errorHandler = require("./middlewares/error-handler");
 
 const app = express();
 
-const { PORT = 3001 } = process.env;
-
 mongoose
-  .connect("mongodb://127.0.0.1:27017/wtwr_db")
+  .connect(DB_ADDRESS)
   .then(() => {
     console.log("Connected to DB");
   })
