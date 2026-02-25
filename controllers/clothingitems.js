@@ -11,14 +11,14 @@ const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   if (!weather) {
-    throw new BadRequestError("Weather is required");
+    return next(new BadRequestError("Weather is required"));
   }
 
   if (!imageUrl) {
-    throw new BadRequestError("ImageUrl is required");
+    return next(new BadRequestError("ImageUrl is required"));
   }
   if (!Validator.isURL(String(imageUrl))) {
-    throw new BadRequestError("ImageUrl must be a valid URL");
+    return next(new BadRequestError("ImageUrl must be a valid URL"));
   }
 
   return clothingItem
@@ -26,7 +26,7 @@ const createItem = (req, res, next) => {
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        throw new BadRequestError("Invalid item data");
+        return next(new BadRequestError("Invalid item data"));
       }
       throw err;
     })
@@ -52,7 +52,7 @@ const likeItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("Item not found"));
       } else if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
+        return next(new BadRequestError("Invalid item ID"));
       }
       throw err;
     })
@@ -71,7 +71,7 @@ const unlikeItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("Item not found"));
       } else if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
+        return next(new BadRequestError("Invalid item ID"));
       }
       throw err;
     })
@@ -87,7 +87,7 @@ const deleteItem = (req, res, next) => {
       const itemOwner = item.owner.toString();
       const requester = String(req.user && req.user._id);
       if (itemOwner !== requester) {
-        throw new ForbiddenError("You do not have permission to delete this item");
+        return next(new ForbiddenError("You do not have permission to delete this item"));
       }
       return clothingItems
         .findByIdAndDelete(itemId)
@@ -97,7 +97,7 @@ const deleteItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("Item not found"));
       } else if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
+        return next(new BadRequestError("Invalid item ID"));
       }
       throw err;
     })
