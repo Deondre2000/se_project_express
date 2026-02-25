@@ -11,14 +11,14 @@ const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   if (!weather) {
-    return next(new BadRequestError("Weather is required"));
+    throw new BadRequestError("Weather is required");
   }
 
   if (!imageUrl) {
-    return next(new BadRequestError("ImageUrl is required"));
+    throw new BadRequestError("ImageUrl is required");
   }
   if (!Validator.isURL(String(imageUrl))) {
-    return next(new BadRequestError("ImageUrl must be a valid URL"));
+    throw new BadRequestError("ImageUrl must be a valid URL");
   }
 
   return clothingItem
@@ -26,11 +26,11 @@ const createItem = (req, res, next) => {
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid item data"));
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid item data");
       }
-    });
+      throw err;
+    })
+    .catch(next);
 };
 
 const getItems = (req, res, next) => {
@@ -50,13 +50,13 @@ const likeItem = (req, res, next) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Item not found"));
+        throw new NotFoundError("Item not found");
       } else if (err.name === "CastError") {
-        next(new BadRequestError("Invalid item ID"));
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid item ID");
       }
-    });
+      throw err;
+    })
+    .catch(next);
 };
 
 const unlikeItem = (req, res, next) => {
@@ -69,13 +69,13 @@ const unlikeItem = (req, res, next) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Item not found"));
+        throw new NotFoundError("Item not found");
       } else if (err.name === "CastError") {
-        next(new BadRequestError("Invalid item ID"));
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid item ID");
       }
-    });
+      throw err;
+    })
+    .catch(next);
 };
 
 const deleteItem = (req, res, next) => {
@@ -95,13 +95,13 @@ const deleteItem = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Item not found"));
+        throw new NotFoundError("Item not found");
       } else if (err.name === "CastError") {
-        next(new BadRequestError("Invalid item ID"));
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid item ID");
       }
-    });
+      throw err;
+    })
+    .catch(next);
 };
 
 module.exports = {

@@ -5,7 +5,7 @@ const { JWT_SECRET } = require("../utils/config");
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith("Bearer ")) {
-    return next(new UnauthorizedError("Authorization required"));
+    throw new UnauthorizedError("Authorization required");
   }
 
   try {
@@ -13,9 +13,10 @@ module.exports = (req, res, next) => {
     const payload = jwt.verify(token, JWT_SECRET);
     console.log("Auth middleware - decoded payload:", payload);
     req.user = payload;
-    return next();
   } catch (err) {
     console.log("Auth middleware - token verification failed:", err.message);
-    return next(new UnauthorizedError("Invalid token"));
+    throw new UnauthorizedError("Invalid token");
   }
+
+  return next();
 };

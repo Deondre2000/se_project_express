@@ -13,18 +13,16 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!name || !avatar || !email || !password) {
-    return next(
-      new BadRequestError("All fields (name, avatar, email, password) are required")
-    );
+    throw new BadRequestError("All fields (name, avatar, email, password) are required");
   }
 
   try {
     const parsed = new URL(avatar);
     if (!["http:", "https:"].includes(parsed.protocol)) {
-      return next(new BadRequestError("You must enter a valid URL"));
+      throw new BadRequestError("You must enter a valid URL");
     }
   } catch (e) {
-    return next(new BadRequestError("You must enter a valid URL"));
+    throw new BadRequestError("You must enter a valid URL");
   }
 
   return User.findOne({ email })
@@ -47,7 +45,7 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid user data"));
+        throw new BadRequestError("Invalid user data");
       } else if (err.name === "MongoServerError" && err.code === 11000) {
         let key = null;
         if (err.keyPattern) {
@@ -56,23 +54,24 @@ const createUser = (req, res, next) => {
           [key] = Object.keys(err.keyValue);
         }
         if (key === "email") {
-          next(new ConflictError("Email already exists"));
+          throw new ConflictError("Email already exists");
         } else if (key === "name") {
-          next(new ConflictError("Name already exists"));
+          throw new ConflictError("Name already exists");
         } else {
-          next(new ConflictError("Duplicate key"));
+          throw new ConflictError("Duplicate key");
         }
       } else {
-        next(err);
+        throw err;
       }
-    });
+    })
+    .catch(next);
 };
 
 const userLogin = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(new BadRequestError("Email and password are required"));
+    throw new BadRequestError("Email and password are required");
   }
 
   return User.findUserByCredentials(email, password)
@@ -89,13 +88,10 @@ const userLogin = (req, res, next) => {
 
       return res.status(200).send({ token });
     })
-    .catch((err) => {
-      if (err.message === "Incorrect email or password") {
-        next(new UnauthorizedError("Incorrect email or password"));
-      } else {
-        next(new UnauthorizedError("Incorrect email or password"));
-      }
-    });
+    .catch(() => {
+      throw new UnauthorizedError("Incorrect email or password");
+    })
+    .catch(next);
 };
 
 const getCurrentUser = (req, res, next) => {
@@ -118,13 +114,14 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       console.error("[getCurrentUser] Error:", err.name, err.message);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("User not found"));
+        throw new NotFoundError("User not found");
       } else if (err.name === "CastError") {
-        next(new BadRequestError("Invalid user ID"));
+        throw new BadRequestError("Invalid user ID");
       } else {
-        next(err);
+        throw err;
       }
-    });
+    })
+    .catch(next);
 };
 
 const updateUser = (req, res, next) => {
@@ -140,15 +137,16 @@ const updateUser = (req, res, next) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("User not found"));
+        throw new NotFoundError("User not found");
       } else if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid user data"));
+        throw new BadRequestError("Invalid user data");
       } else if (err.name === "CastError") {
-        next(new BadRequestError("Invalid user ID"));
+        throw new BadRequestError("Invalid user ID");
       } else {
-        next(err);
+        throw err;
       }
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
