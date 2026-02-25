@@ -114,7 +114,7 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       console.error("[getCurrentUser] Error:", err.name, err.message);
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("User not found");
+        return next(new NotFoundError("User not found"));
       } else if (err.name === "CastError") {
         throw new BadRequestError("Invalid user ID");
       } else {
@@ -137,7 +137,7 @@ const updateUser = (req, res, next) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("User not found");
+        return next(new NotFoundError("User not found"));
       } else if (err.name === "ValidationError") {
         throw new BadRequestError("Invalid user data");
       } else if (err.name === "CastError") {
