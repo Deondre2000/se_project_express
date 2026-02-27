@@ -17,4 +17,4 @@ This project was created using express.js, a little bit of mongoose and postman 
 
 Domain name: www.react.pakasak.com
 Frontend link: https://github.com/Deondre2000/se_project_react.git
-Deondrebutler-Project_pitch: https://drive.google.com/file/d/1_cfv6emQOylTdaUrzhPPuaWIl2N_1Qn4/view?usp=drive_link
+Deondrebutler-Project_pitch: https://drive.google.com/file/d/1_cfv6emQOylTdaUrzhPPuaWIl2N_1Qn4/view?usp=drive_link. "sorry about the mic quality the new platform with camera i have to set it up."
